@@ -1,4 +1,4 @@
-BLOCK_SIZE = 25
+BLOCK_SIZE = 50
 
 class Level
 	attr_accessor :render_target, :invalid_draw
@@ -17,12 +17,12 @@ class Level
       	end
 	end
 
-	def draw args
+	def draw (show_lines, args)
 	  if @invalid_draw then
 	    each(Proc.new do |c, x, r, y|
-	        if c == -1 && args.state.show_lines then
+	        if c == -1 && show_lines then
 	          args.render_target(@render_target).borders << {x: BLOCK_SIZE*x, y: BLOCK_SIZE*y, w: BLOCK_SIZE, h: BLOCK_SIZE, r: 255, g: 0, b: 0}
-	        elsif c != -1 then
+	        elsif c > -1 then
 	          args.render_target(@render_target).solids << {x: BLOCK_SIZE*x, y: BLOCK_SIZE*y, w: BLOCK_SIZE, h: BLOCK_SIZE, }.merge(get_block_color(c))
 	        end
 	    end)
@@ -53,10 +53,12 @@ class Level
 	end
 
 	def save args
-		args.gtk.serialize_state('save/last.txt', @map)
+		args.gtk.serialize_state('save/last.txt', {map: @map})
 	end
 
 	def restore args
-		@map = args.gtk.deserialize_state 'save/last.txt'
+		state = args.gtk.deserialize_state 'save/last.txt'
+		@map = state[:map]
+		@invalid_draw = true
 	end
 end
