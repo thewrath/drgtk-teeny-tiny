@@ -3,7 +3,9 @@ require 'app/editor.rb'
 require 'app/levelEditor.rb'
 
 def init args
-  args.state.editor = LevelEditor.new(Level.new(args))
+  level = Level.new(args)
+  level.restore args
+  args.state.editor = LevelEditor.new(level)
 end
 
 def tick args

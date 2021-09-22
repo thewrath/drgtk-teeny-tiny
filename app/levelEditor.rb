@@ -22,12 +22,14 @@ class LevelEditor
 			:l => Proc.new do |args|
 			  		@current_level.restore args
 				end,
+			:d => Proc.new {|args| @current_level.reset args},
 			:delete => Proc.new {|args| @block_type = -1},
 			:zero => Proc.new {|args| @block_type = 0},
 			:one => Proc.new {|args| @block_type = 1}
 		}
 
 		@block_type = 0
+		# Reload previous state
 		update_render
 	end
 

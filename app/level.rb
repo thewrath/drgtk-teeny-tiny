@@ -4,8 +4,7 @@ class Level
 	attr_accessor :render_target, :invalid_draw
 
 	def initialize(args)
-		@map = Array.new(args.grid.top/BLOCK_SIZE) { |i| Array.new(args.grid.right/BLOCK_SIZE, -1) }
-	  	@invalid_draw = true
+		reset args
 	  	@render_target = :grid
 	end
 
@@ -59,6 +58,11 @@ class Level
 	def restore args
 		state = args.gtk.deserialize_state 'save/last.txt'
 		@map = state[:map]
+		@invalid_draw = true
+	end
+
+	def reset args
+		@map = Array.new(args.grid.top/BLOCK_SIZE) { |i| Array.new(args.grid.right/BLOCK_SIZE, -1) }
 		@invalid_draw = true
 	end
 end
