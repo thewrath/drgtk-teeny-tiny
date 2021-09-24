@@ -13,23 +13,33 @@ class LevelEditor
 
 		@keys = {
 			:s => Proc.new do |args|
-			  		@show_lines = !@show_lines
-			  		update_render
-				end,
+		  		@show_lines = !@show_lines
+		  		update_render
+			end,
 			:e => Proc.new do |args|
-			  		@current_level.save args
-				end,
+		  		mut_current_level("save", {args: args})
+			end,
 			:l => Proc.new do |args|
-			  		@current_level.restore args
-				end,
-			:d => Proc.new {|args| @current_level.reset args},
+		  		mut_current_level("restore", {args: args})
+			end,
+			:d => Proc.new do |args| 
+				mut_current_level("reset", {args: args})
+			end,
+			:z => Proc.new do |args|
+				last_state = undo
+				@current_level = last_state if last_state 
+				update_render
+			end,
 			:delete => Proc.new {|args| @block_type = -1},
 			:zero => Proc.new {|args| @block_type = 0},
 			:one => Proc.new {|args| @block_type = 1}
 		}
 
 		@block_type = 0
-		# Reload previous state
+
+		# Initialize history management
+		push_state @current_level
+
 		update_render
 	end
 
@@ -40,6 +50,16 @@ class LevelEditor
 		handle_keys args
 		handle_mouse args
 		@current_level.draw(@show_lines, args)
+	end
+
+	def update_render
+		@current_level.invalid_draw = true
+	end
+
+	def mut_current_level(method, params)
+		push_state @current_level
+		@current_level.send(method, params)
+		update_render
 	end
 
 	def handle_keys args
@@ -56,15 +76,9 @@ class LevelEditor
 	    @current_level.each(Proc.new do |c, x, r, y|
 	      if args.inputs.mouse.inside_rect?({x: BLOCK_SIZE*x, y: BLOCK_SIZE*y, w: BLOCK_SIZE, h: BLOCK_SIZE}) then
 	        # Change block type
-	        @current_level.set(x, y, @block_type)
-	        update_render
+	        mut_current_level("set", {x: x, y: y, block_type: @block_type})
 	      end
 	    end)
 	  end
 	end
-
-	def update_render
-		@current_level.invalid_draw = true
-	end
-
 end

@@ -4,7 +4,7 @@ class Level
 	attr_accessor :render_target, :invalid_draw
 
 	def initialize(args)
-		reset args
+		reset({args: args})
 	  	@render_target = :grid
 	end
 
@@ -40,8 +40,8 @@ class Level
 	                            source_h: args.grid.top }
 	end
 
-	def set(x, y, type)
-		@map[y][x] = type
+	def set params
+		@map[params[:y]][params[:x]] = params[:block_type]
 	end
 
 	def get_block_color c
@@ -51,18 +51,16 @@ class Level
 	  ][c]
 	end
 
-	def save args
-		args.gtk.serialize_state('save/last.txt', {map: @map})
+	def save params
+		params[:args].gtk.serialize_state('data/last.txt', {map: @map})
 	end
 
-	def restore args
-		state = args.gtk.deserialize_state 'save/last.txt'
+	def restore params
+		state = params[:args].gtk.deserialize_state 'data/last.txt'
 		@map = state[:map]
-		@invalid_draw = true
 	end
 
-	def reset args
-		@map = Array.new(args.grid.top/BLOCK_SIZE) { |i| Array.new(args.grid.right/BLOCK_SIZE, -1) }
-		@invalid_draw = true
+	def reset params
+		@map = Array.new(params[:args].grid.top/BLOCK_SIZE) { |i| Array.new(params[:args].grid.right/BLOCK_SIZE, -1) }
 	end
 end

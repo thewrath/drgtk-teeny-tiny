@@ -1,16 +1,15 @@
 module History
-	def history
-		@history ||= []
-		@reverse_history ||= []
-	end
 
 	def push_state state
-		@history << state
+		@history ||= []
+		@history << state.clone
 	end
 
 	def undo
+		@history ||= []
+		@reverse_history ||= []
 		state = @history.pop
-		@reverse_history << state
+		@reverse_history << state.clone if state != nil
 		return state
 	end
 

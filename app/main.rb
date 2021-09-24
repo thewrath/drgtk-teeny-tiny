@@ -4,7 +4,6 @@ require 'app/levelEditor.rb'
 
 def init args
   level = Level.new(args)
-  level.restore args
   args.state.editor = LevelEditor.new(level)
 end
 
