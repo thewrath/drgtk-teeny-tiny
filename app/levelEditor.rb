@@ -17,28 +17,25 @@ class LevelEditor
 		  		update_render
 			end,
 			:e => Proc.new do |args|
-		  		mut_current_level("save", {args: args})
+		  		mut_target(@current_level, "save", {args: args})
 			end,
 			:l => Proc.new do |args|
-		  		mut_current_level("restore", {args: args})
+		  		mut_target(@current_level, "restore", {args: args})
 			end,
 			:d => Proc.new do |args| 
-				mut_current_level("reset", {args: args})
+				mut_target(@current_level, "reset", {args: args})
 			end,
 			:z => Proc.new do |args|
-				last_state = undo
-				@current_level = last_state if last_state 
-				update_render
+				undo
 			end,
 			:delete => Proc.new {|args| @block_type = -1},
 			:zero => Proc.new {|args| @block_type = 0},
 			:one => Proc.new {|args| @block_type = 1}
 		}
 
-		@block_type = 0
+		@keys_state = @keys.clone.transform_values! {|v| :up}
 
-		# Initialize history management
-		push_state @current_level
+		@block_type = 0
 
 		update_render
 	end
@@ -56,27 +53,31 @@ class LevelEditor
 		@current_level.invalid_draw = true
 	end
 
-	def mut_current_level(method, params)
-		push_state @current_level
-		@current_level.send(method, params)
-		update_render
-	end
-
 	def handle_keys args
 	  @keys.each do |input, action|
 	    args.inputs.keyboard.keys.down.include?(input)
-	    if args.inputs.keyboard.keys.down.include?(input) then
+	    if args.inputs.keyboard.keys.down.include?(input) && @keys_state[input] != :down then
 	      action.call(args)
+	      @keys_state[input] = :down
+	    elsif args.inputs.keyboard.keys.up.include?(input) then
+	      @keys_state[input] = :up
 	    end
 	  end
 	end
 
 	def handle_mouse args
+		# Todo : prevent mouse from multiple click on same block
 	  if args.inputs.mouse.button_left then
-	    @current_level.each(Proc.new do |c, x, r, y|
+	    @current_level.each_block(Proc.new do |c, x, r, y|
 	      if args.inputs.mouse.inside_rect?({x: BLOCK_SIZE*x, y: BLOCK_SIZE*y, w: BLOCK_SIZE, h: BLOCK_SIZE}) then
 	        # Change block type
-	        mut_current_level("set", {x: x, y: y, block_type: @block_type})
+	        # Todo : find previous block type
+	        mut_target(@current_level,
+	         "set",
+        	 {x: x, y: y, block_type: @block_type},
+	         "set",
+	         {x: x, y: y, block_type: nil}
+            )
 	      end
 	    end)
 	  end

@@ -2,14 +2,15 @@ BLOCK_SIZE = 50
 
 class Level
 	attr_accessor :render_target, :invalid_draw
+	attr_reader :map
 
 	def initialize(args)
 		reset({args: args})
-	  	@render_target = :grid
+	  	@render_target = :grid_target
 	end
 
-	def each action
-		@map.each_with_index do |r, y|
+	def each_block action
+		@grid.each_with_index do |r, y|
         	r.each_with_index do |c, x|
           		action.call(c, x, r, y)
         	end
@@ -18,7 +19,7 @@ class Level
 
 	def draw (show_lines, args)
 	  if @invalid_draw then
-	    each(Proc.new do |c, x, r, y|
+	    each_block(Proc.new do |c, x, r, y|
 	        if c == -1 && show_lines then
 	          args.render_target(@render_target).borders << {x: BLOCK_SIZE*x, y: BLOCK_SIZE*y, w: BLOCK_SIZE, h: BLOCK_SIZE, r: 255, g: 0, b: 0}
 	        elsif c > -1 then
@@ -41,7 +42,7 @@ class Level
 	end
 
 	def set params
-		@map[params[:y]][params[:x]] = params[:block_type]
+		@grid[params[:y]][params[:x]] = params[:block_type]
 	end
 
 	def get_block_color c
@@ -52,15 +53,15 @@ class Level
 	end
 
 	def save params
-		params[:args].gtk.serialize_state('data/last.txt', {map: @map})
+		params[:args].gtk.serialize_state('data/last.txt', {grid: @grid})
 	end
 
 	def restore params
 		state = params[:args].gtk.deserialize_state 'data/last.txt'
-		@map = state[:map]
+		@grid = state[:grid]
 	end
 
 	def reset params
-		@map = Array.new(params[:args].grid.top/BLOCK_SIZE) { |i| Array.new(params[:args].grid.right/BLOCK_SIZE, -1) }
+		@grid = Array.new(params[:args].grid.top/BLOCK_SIZE) { |i| Array.new(params[:args].grid.right/BLOCK_SIZE, -1) }
 	end
 end

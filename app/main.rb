@@ -25,5 +25,5 @@ def draw_debug_labels args
     args.outputs.debug << [50, args.grid.top - (50 + (30*i)), l, 255, 255, 255].labels
   end
 
-  args.state.debug_labels = []
+  args.state.debug_labels.clear
 end
